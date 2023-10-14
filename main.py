@@ -2,6 +2,7 @@ import exifread
 from os import walk, path
 from time import strptime, strftime
 
+
 def read_exif(image_path):
     with open(image_path, mode='rb') as f:
         return exifread.process_file(f)
@@ -17,13 +18,6 @@ def read_specific_exif(image_path):
         # EXIF DateTimeOriginal: 2022:05:27 13:48:26
         'original_ts': original_ts,
     }
-
-
-def print_hi(name):
-    with open('/home/kosmik/Media/kuvat/2022/2022-06-29/IMG_4146.JPG', mode='rb') as f:
-        exif = exifread.process_file(f)
-        for k, v in exif.items():
-            print('%s: %s' % (k, v))
 
 
 def find_files_with_meta():
@@ -60,5 +54,8 @@ def resolve_target(file_with_meta):
 if __name__ == '__main__':
     files_with_meta = find_files_with_meta()
     print(files_with_meta)
-    files_with_targets = [{'full_path': f['full_path'], 'path': f['path'], 'target': resolve_target(f)} for f in files_with_meta]
-    print(files_with_targets)
+    files_with_targets = [{'meta': f, 'target': resolve_target(f)} for f in files_with_meta]
+    for file in files_with_targets:
+        print(file['meta']['full_path'])
+        print('  %s' % file['target'])
+        print('  %s' % ('exif' in file['meta'] and file['meta']['exif'] or None))
