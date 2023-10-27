@@ -1,6 +1,10 @@
-import exifread
+import argparse
+from os import makedirs
 from os import walk, path
+from shutil import copy2 as copy_with_metadata
 from time import strptime, strftime
+
+import exifread
 
 
 def read_exif(image_path):
@@ -20,9 +24,9 @@ def read_specific_exif(image_path):
     }
 
 
-def find_files_with_meta():
+def find_files_with_meta(root_path):
     metas = []
-    root_path = '/home/kosmik/Media/kuvat/2022'
+    root_path = root_path
     for dirpath, dirnames, filenames in walk(root_path):
         for filename in filenames:
             image_path = path.join(dirpath, filename)
@@ -30,7 +34,7 @@ def find_files_with_meta():
                 'full_path': image_path,
                 'path': image_path.removeprefix(root_path).strip('/')
             }
-            print(image_path)
+            # print(image_path)
             if filename.lower().endswith('.jpg') or filename.lower().endswith('.jpeg'):
                 # exif = read_exif(image_path)
                 exif = read_specific_exif(image_path)
@@ -51,11 +55,29 @@ def resolve_target(file_with_meta):
     return target
 
 
-if __name__ == '__main__':
-    files_with_meta = find_files_with_meta()
-    print(files_with_meta)
+def lue_kuvat(root_path):
+    files_with_meta = find_files_with_meta(root_path)
     files_with_targets = [{'meta': f, 'target': resolve_target(f)} for f in files_with_meta]
-    for file in files_with_targets:
-        print(file['meta']['full_path'])
-        print('  %s' % file['target'])
-        print('  %s' % ('exif' in file['meta'] and file['meta']['exif'] or None))
+    return files_with_targets
+
+
+def kopioi_kuvat(polku_ulos, kuvat):
+    for kuva in kuvat:
+        makedirs(path.join(polku_ulos, kuva['target']), exist_ok=True)
+        kuvan_polku = kuva['meta']['full_path']
+        kohdehakemisto = path.join(polku_ulos, kuva['target'])
+        print('kopioidaan %s -> %s' % (kuvan_polku, kohdehakemisto))
+        copy_with_metadata(kuvan_polku, kohdehakemisto)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Lajittele kuvat.')
+    parser.add_argument('sisaan', metavar='sisaan', type=str,
+                        help='polku josta luetaan')
+    parser.add_argument('ulos', metavar='ulos', type=str,
+                        help='polku johon kirjoitetaan')
+
+    args = parser.parse_args()
+    kuvat = lue_kuvat(args.sisaan)
+    print(kuvat[0])
+    kopioi_kuvat(args.ulos, kuvat)
