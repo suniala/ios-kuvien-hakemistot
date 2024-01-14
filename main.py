@@ -26,7 +26,6 @@ def read_specific_exif(image_path):
 
 def find_files_with_meta(root_path):
     metas = []
-    root_path = root_path
     for dirpath, dirnames, filenames in walk(root_path):
         for filename in filenames:
             image_path = path.join(dirpath, filename)
