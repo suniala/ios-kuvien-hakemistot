@@ -44,18 +44,18 @@ def find_files_with_meta(root_path):
 
 
 def resolve_target(file_with_meta):
+    target_from_path = file_with_meta['path'].strip('/').split('/')[0]
+    if not target_from_path:
+        raise Exception('Polusta ei löytynyt kohdetta tiedostolle: %s' % (file_with_meta['path']))
+
     exif = 'exif' in file_with_meta and file_with_meta['exif'] or None
     if exif and exif['is_iphone'] and exif['original_ts']:
         target = strftime('%Y-%m-%d', exif['original_ts'])
-        target_change = True
     else:
-        target = file_with_meta['path'].strip('/').split('/')[0]
-        if not target:
-            raise Exception('Polusta ei löytynyt kohdetta tiedostolle: %s' % (file_with_meta['path']))
-        target_change = False
+        target = target_from_path
     return {
         'target': target,
-        'target_change': target_change
+        'target_change': target != target_from_path
     }
 
 
